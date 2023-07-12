@@ -4,6 +4,16 @@ from .forms import TopicForm, EntryForm
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from .models import Post
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView
+)
+
 # Create your views here.
 def index(request):
     """The home page for Learning Log."""
@@ -84,3 +94,62 @@ def edit_entry(request, entry_id):
             return redirect('Entregas:topic', topic_id=topic.id)
     context = {'entry': entry, 'topic': topic, 'form': form}
     return render(request, 'entregas/edit_entry.html', context)
+
+#posts 
+def home(request):
+    context = {
+        'posts': Post.objects.all()
+    }
+    return render(request, 'entregas/post.html', context)
+
+
+class PostListView(ListView):
+    model = Post
+    template_name = 'entregas/post.html'  # <app>/<model>_<viewtype>.html
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+
+
+class PostDetailView(DetailView):
+    model = Post
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:
+            return True
+        return False
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    success_url = '/'
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:
+            return True
+        return False
+
+
+#about the 
+def about_me_view(request):
+    return render(request, 'entregas/about_me.html')
+

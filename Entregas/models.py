@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.utils import timezone
+from django.urls import reverse
+
 # Create your models here.
 class Topic(models.Model):
     """A topic the user is learning about."""
@@ -23,3 +26,16 @@ class Entry(models.Model):
     def __str__(self):
         """Return a string representation of the model."""
         return f"{self.text[:50]}..."
+
+
+class Post(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    date_posted = models.DateTimeField(default=timezone.now)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('post-detail', kwargs={'pk': self.pk})
