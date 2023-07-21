@@ -10,21 +10,17 @@ from django.contrib import messages
 
 
 def register(request):
-    """Register a new user."""
-    if request.method != 'POST':
-        # Display blank registration form.
-        form = UserRegisterForm()
-    else:
-        # Process completed form.
-        form = UserRegisterForm(data=request.POST)
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
-            new_user = form.save()
-            # Log the user in and then redirect to the home page.
-            login(request, new_user)
-            return redirect('Entregas:index')
-    # Display a blank or invalid form.
-    context = {'form': form}
-    return render(request, 'registration/register.html', context)
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Your account has been created! You are now able to log in')
+            return redirect('users:login')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'registration/register.html', {'form': form})
+
 
 @login_required
 def profile(request):

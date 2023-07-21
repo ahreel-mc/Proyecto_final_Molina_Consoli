@@ -25,6 +25,8 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('', include('Entregas.urls')),
     path('profile/', user_views.profile, name='profile'),
+    path('register/', user_views.register, name='register'),
+
 ]
 
 
